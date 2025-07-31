@@ -1,0 +1,20 @@
+---
+- name: Check if droplet already exists
+  community.digitalocean.digital_ocean_droplet_info:
+    oauth_token: "{{ do_api_token }}"
+  register: existing_droplets
+
+- name: Provision droplet
+  community.digitalocean.digital_ocean_droplet:
+    oauth_token: "{{ do_api_token }}"
+    name: "{{ droplet_name }}"
+    size: s-1vcpu-512mb-10gb
+    region: fra1
+    image: ubuntu-22-04-x64
+    ssh_keys: ["{{ ssh_key_fingerprint }}"]
+    monitoring: true
+    tags: ["Invizio", "test"]
+    firewall: null
+    state: present
+  register: droplet
+  when: existing_droplets.data | selectattr('name', 'equalto', droplet_name) | list | length == 0

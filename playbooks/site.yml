@@ -7,3 +7,6 @@
     - role: ssh_key
       vars:
         ssh_key_name: "inizio_ssh_key"
+    - role: provision
+      vars:
+        droplet_name: "ubuntu-s-1vcpu-512mb-10gb-fra1-01"
