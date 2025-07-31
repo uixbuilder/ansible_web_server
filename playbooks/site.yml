@@ -19,6 +19,7 @@
 
   roles:
     - role: nginx
+    - role: ufw
 
   tasks:
     - name: Validate HTTP response from the server
