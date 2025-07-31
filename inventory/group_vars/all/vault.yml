@@ -1,0 +1,5 @@
+# Do not edit this variables directly.
+# Instead, use the `setup_secrets.sh` script to set it.
+do_api_token: Place DigitalOcean token here
+ssh_private_key: Place SSH private key here
+ssh_public_key: Place SSH public key here

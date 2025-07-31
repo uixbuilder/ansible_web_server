@@ -1,0 +1,4 @@
+plugin: community.digitalocean.digitalocean
+# Do not edit this variable directly.
+# Instead, use the `setup_secrets.sh` script to set it.
+oauth_token: Place DigitalOcean token here

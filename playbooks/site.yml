@@ -1,0 +1,9 @@
+---
+- name: Provision and Configure Secure Web Server on DigitalOcean
+  hosts: localhost
+  gather_facts: false
+
+  roles:
+    - role: ssh_key
+      vars:
+        ssh_key_name: "inizio_ssh_key"
