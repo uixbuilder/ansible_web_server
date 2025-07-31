@@ -10,3 +10,12 @@
     - role: provision
       vars:
         droplet_name: "ubuntu-s-1vcpu-512mb-10gb-fra1-01"
+
+- name: Configure Web Server
+  hosts: all
+  become: yes
+  vars:
+    ansible_python_interpreter: /usr/bin/python3.10
+
+  roles:
+    - role: nginx
