@@ -1,23 +1,9 @@
 ---
-- name: Check for existing SSH key
-  community.digitalocean.digital_ocean_sshkey_info:
-    oauth_token: "{{ do_api_token }}"
-  register: do_keys
-
 - name: Add SSH key to DigitalOcean if not exists
   community.digitalocean.digital_ocean_sshkey:
     oauth_token: "{{ do_api_token }}"
     name: "{{ ssh_key_name }}"
     ssh_pub_key: "{{ ssh_public_key }}"
     validate_certs: false
-  when: (do_keys.data | selectattr('name', 'equalto', ssh_key_name) | list | length == 0)
-
-- name: Set SSH key fingerprint fact
-  set_fact:
-    ssh_key_fingerprint: >-
-      {{
-        (do_keys.data | selectattr('name', 'equalto', ssh_key_name) | list | first).fingerprint
-          if (do_keys.data | selectattr('name', 'equalto', ssh_key_name) | list | length > 0)
-          else (lookup('community.digitalocean.digital_ocean_sshkey_info',
-                        oauth_token=do_api_token) | selectattr('name', 'equalto', ssh_key_name) | list | first).fingerprint
-      }}
+    state: present
+  register: do_ssh_public_key

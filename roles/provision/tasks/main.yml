@@ -1,9 +1,4 @@
 ---
-- name: Check if droplet already exists
-  community.digitalocean.digital_ocean_droplet_info:
-    oauth_token: "{{ do_api_token }}"
-  register: existing_droplets
-
 - name: Provision droplet
   community.digitalocean.digital_ocean_droplet:
     oauth_token: "{{ do_api_token }}"
@@ -11,10 +6,26 @@
     size: s-1vcpu-512mb-10gb
     region: fra1
     image: ubuntu-22-04-x64
-    ssh_keys: ["{{ ssh_key_fingerprint }}"]
+    unique_name: true
+    ssh_keys: 
+      - "{{ do_ssh_public_key.data.ssh_key.fingerprint }}"
     monitoring: true
     tags: ["Invizio", "test"]
-    firewall: null
-    state: present
+    state: active
   register: droplet
-  when: existing_droplets.data | selectattr('name', 'equalto', droplet_name) | list | length == 0
+
+- name: Wait for SSH to become available
+  ansible.builtin.wait_for:
+    host: "{{ (droplet.data.droplet.networks.v4 | selectattr('type', 'eq', 'public') | map(attribute='ip_address') | first) }}"
+    port: 22
+    delay: 2
+    timeout: 30
+    state: started
+
+- name: Add new droplet to inventory if just created
+  add_host:
+    name: "{{ droplet_name }}"
+    ansible_host: "{{ (droplet.data.droplet.networks.v4 | selectattr('type', 'eq', 'public') | map(attribute='ip_address') | first) }}"
+    ansible_user: root
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+  when: droplet.changed
