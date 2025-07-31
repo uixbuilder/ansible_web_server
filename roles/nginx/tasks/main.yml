@@ -46,9 +46,3 @@
     owner: root
     group: root
   notify: Reload nginx
-
-
-- name: Reload nginx after deployment
-  ansible.builtin.service:
-    name: nginx
-    state: reloaded
