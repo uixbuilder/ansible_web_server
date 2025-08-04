@@ -3,7 +3,7 @@
   ansible.builtin.apt:
     name: ufw
     state: present
-    update_cache: yes
+    update_cache: true
 
 - name: Allow SSH (port 22)
   community.general.ufw:
