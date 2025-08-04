@@ -1,0 +1,68 @@
+---
+- name: Ensure git is installed
+  ansible.builtin.apt:
+    name: git
+    state: present
+
+- name: Ensure wwwebapp user exists
+  ansible.builtin.user:
+    name: wwwebapp
+    shell: /bin/bash
+    state: present
+
+- name: Ensure /opt is owned by root:root (optional, for hygiene)
+  ansible.builtin.file:
+    path: /opt
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Stat /opt/static-sites
+  ansible.builtin.stat:
+    path: /opt/static-sites
+    get_attributes: true
+  register: webcontent_static_sites_dir
+
+- name: Remove /opt/static-sites if present and not owned by wwwebapp
+  ansible.builtin.file:
+    path: /opt/static-sites
+    state: absent
+  when:
+    - webcontent_static_sites_dir.stat.exists
+    - webcontent_static_sites_dir.stat.pw_name is defined
+    - webcontent_static_sites_dir.stat.pw_name != 'wwwebapp'
+
+- name: Ensure /opt/static-sites exists and is owned by wwwebapp (for git clone)
+  ansible.builtin.file:
+    path: /opt/static-sites
+    state: directory
+    owner: wwwebapp
+    group: wwwebapp
+    mode: '0755'
+
+- name: Ensure Ansible remote_tmp exists and is owned by wwwebapp
+  ansible.builtin.file:
+    path: /home/wwwebapp/.ansible/tmp
+    state: directory
+    owner: wwwebapp
+    group: wwwebapp
+    mode: '0700'
+    recurse: true
+
+- name: Clone website content from Git
+  ansible.builtin.git:
+    repo: 'https://github.com/cloudacademy/static-website-example.git'
+    dest: /opt/static-sites
+    version: master
+    force: true
+  become: true
+  become_user: wwwebapp
+
+- name: Ensure all website files are owned by wwwebapp
+  ansible.builtin.file:
+    path: /opt/static-sites
+    state: directory
+    recurse: true
+    owner: wwwebapp
+    group: wwwebapp

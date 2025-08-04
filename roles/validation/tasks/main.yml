@@ -1,13 +1,12 @@
 ---
-# Use uri module to verify site responds and contains expected text.
 - name: Validate HTTP response from the server
   ansible.builtin.uri:
     url: "http://{{ ansible_host }}"
     return_content: true
-  register: http_response
+  register: validation_http_response
 
 - name: Assert web server is running and serving expected content
   ansible.builtin.assert:
     that:
-      - http_response.status == 200
-      - '"Deployed with Ansible 🚀" in http_response.content'
+      - validation_http_response.status == 200
+      - '"A fully responsive site template" in validation_http_response.content'

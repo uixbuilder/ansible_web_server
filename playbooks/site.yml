@@ -18,6 +18,7 @@
     ansible_python_interpreter: /usr/bin/python3.10
 
   roles:
+    - role: webcontent
     - role: nginx
 
 

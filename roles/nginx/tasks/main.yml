@@ -11,29 +11,6 @@
     state: started
     enabled: true
 
-- name: Ensure wwwebapp user exists
-  ansible.builtin.user:
-    name: wwwebapp
-    shell: /bin/bash
-    state: present
-
-- name: Ensure /opt/static-sites exists
-  ansible.builtin.file:
-    path: /opt/static-sites
-    state: directory
-    owner: wwwebapp
-    group: wwwebapp
-    mode: '0755'
-
-- name: Generate index.html from template
-  ansible.builtin.template:
-    src: index.html.j2
-    dest: /opt/static-sites/index.html
-    owner: wwwebapp
-    group: wwwebapp
-    mode: '0644'
-  notify: Reload Nginx
-
 - name: Remove default nginx site config (if exists)
   ansible.builtin.file:
     path: /etc/nginx/sites-enabled/default
