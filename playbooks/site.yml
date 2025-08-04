@@ -21,15 +21,12 @@
     - role: nginx
     - role: ufw
 
-  tasks:
-    - name: Validate HTTP response from the server
-      ansible.builtin.uri:
-        url: "http://{{ ansible_host }}"
-        return_content: yes
-      register: http_response
 
-    - name: Assert web server is running and serving expected content
-      ansible.builtin.assert:
-        that:
-          - http_response.status == 200
-          - '"Deployed with Ansible 🚀" in http_response.content'
+- name: Validate Web Server's reachability
+  hosts: all
+  become: yes
+  vars:
+    ansible_python_interpreter: /usr/bin/python3.10
+  
+  roles:
+    - role: validation
