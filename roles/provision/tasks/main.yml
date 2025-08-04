@@ -7,25 +7,18 @@
     region: fra1
     image: ubuntu-22-04-x64
     unique_name: true
-    ssh_keys: 
+    ssh_keys:
       - "{{ do_ssh_public_key.data.ssh_key.fingerprint }}"
     monitoring: true
     tags: ["Invizio", "test"]
     state: active
-  register: droplet
+  register: provision_droplet
+  notify: Add new droplet to inventory
 
 - name: Wait for SSH to become available
   ansible.builtin.wait_for:
-    host: "{{ (droplet.data.droplet.networks.v4 | selectattr('type', 'eq', 'public') | map(attribute='ip_address') | first) }}"
+    host: "{{ (provision_droplet.data.droplet.networks.v4 | selectattr('type', 'eq', 'public') | map(attribute='ip_address') | first) }}"
     port: 22
     delay: 2
     timeout: 30
     state: started
-
-- name: Add new droplet to inventory if just created
-  add_host:
-    name: "{{ droplet_name }}"
-    ansible_host: "{{ (droplet.data.droplet.networks.v4 | selectattr('type', 'eq', 'public') | map(attribute='ip_address') | first) }}"
-    ansible_user: root
-    ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
-  when: droplet.changed

@@ -1,0 +1,8 @@
+---
+- name: Add new droplet to inventory
+  ansible.builtin.add_host:
+    name: "{{ provision_droplet.data.droplet.name }}"
+    ansible_host: "{{ (provision_droplet.data.droplet.networks.v4 | selectattr('type', 'eq', 'public') | map(attribute='ip_address') | first) }}"
+    ansible_user: root
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+  when: provision_droplet.changed
