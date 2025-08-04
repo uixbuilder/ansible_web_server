@@ -19,7 +19,6 @@
 
   roles:
     - role: nginx
-    - role: ufw
 
 
 - name: Validate Web Server's reachability
