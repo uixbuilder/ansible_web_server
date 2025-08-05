@@ -9,9 +9,9 @@ events {
 
 http {
     server {
-        listen 80 default_server;
+        listen {{ nginx_port }} default_server;
         server_name _;
-        root /opt/static-sites;
+        root {{ web_root }};
         index index.html;
         location / {
             try_files $uri $uri/ =404;

@@ -1,9 +1,0 @@
----
-- name: Add SSH key to DigitalOcean if not exists
-  community.digitalocean.digital_ocean_sshkey:
-    oauth_token: "{{ do_api_token }}"
-    name: "{{ ssh_key_name }}"
-    ssh_pub_key: "{{ ssh_public_key }}"
-    validate_certs: false
-    state: present
-  register: do_ssh_public_key

@@ -2,31 +2,36 @@
 - name: Provision and Configure Secure Web Server on DigitalOcean
   hosts: localhost
   gather_facts: false
+  vars:
+    webserver_name: "ubuntu-s-1vcpu-512mb-10gb-fra1-01"
+    webserver_public_key_name: "webserver_key"
 
   roles:
-    - role: ssh_key
-      vars:
-        ssh_key_name: "inizio_ssh_key"
     - role: provision
       vars:
-        droplet_name: "ubuntu-s-1vcpu-512mb-10gb-fra1-01"
+        ssh_key_name: "{{ webserver_public_key_name }}"
+        droplet_name: "{{ webserver_name }}"
 
 - name: Configure Web Server
   hosts: all
-  become: yes
-  vars:
-    ansible_python_interpreter: /usr/bin/python3.10
+  become: true
 
   roles:
     - role: webcontent
     - role: nginx
 
+- name: Configure Web Server's security and updates
+  hosts: all
+  become: true
+
+  roles:
+    - role: security
+    - role: ufw
+    - role: updates
 
 - name: Validate Web Server's reachability
   hosts: all
-  become: yes
-  vars:
-    ansible_python_interpreter: /usr/bin/python3.10
+  become: true
   
   roles:
     - role: validation

@@ -4,65 +4,65 @@
     name: git
     state: present
 
-- name: Ensure wwwebapp user exists
+- name: Ensure web user exists
   ansible.builtin.user:
-    name: wwwebapp
+    name: "{{ nginx_user }}"
     shell: /bin/bash
     state: present
 
-- name: Ensure /opt is owned by root:root (optional, for hygiene)
+- name: Ensure /opt is owned by root:devops (optional, for hygiene)
   ansible.builtin.file:
     path: /opt
     state: directory
-    owner: root
+    owner: "{{ devops_user }}"
     group: root
     mode: '0755'
 
-- name: Stat /opt/static-sites
+- name: Stat {{ web_root }}
   ansible.builtin.stat:
-    path: /opt/static-sites
+    path: "{{ web_root }}"
     get_attributes: true
   register: webcontent_static_sites_dir
 
-- name: Remove /opt/static-sites if present and not owned by wwwebapp
+- name: Remove web root if present and not owned by web user
   ansible.builtin.file:
-    path: /opt/static-sites
+    path: "{{ web_root }}"
     state: absent
   when:
     - webcontent_static_sites_dir.stat.exists
     - webcontent_static_sites_dir.stat.pw_name is defined
-    - webcontent_static_sites_dir.stat.pw_name != 'wwwebapp'
+    - webcontent_static_sites_dir.stat.pw_name != nginx_user
 
-- name: Ensure /opt/static-sites exists and is owned by wwwebapp (for git clone)
+- name: Ensure web root exists and is owned by web user (for git clone)
   ansible.builtin.file:
-    path: /opt/static-sites
+    path: "{{ web_root }}"
     state: directory
-    owner: wwwebapp
-    group: wwwebapp
+    owner: "{{ nginx_user }}"
+    group: "{{ nginx_user }}"
     mode: '0755'
 
-- name: Ensure Ansible remote_tmp exists and is owned by wwwebapp
+- name: Ensure Ansible remote_tmp exists and is owned by web user
   ansible.builtin.file:
-    path: /home/wwwebapp/.ansible/tmp
+    path: /home/{{ nginx_user }}/.ansible/tmp
     state: directory
-    owner: wwwebapp
-    group: wwwebapp
+    owner: "{{ nginx_user }}"
+    group: "{{ nginx_user }}"
     mode: '0700'
     recurse: true
 
 - name: Clone website content from Git
   ansible.builtin.git:
     repo: 'https://github.com/cloudacademy/static-website-example.git'
-    dest: /opt/static-sites
+    dest: "{{ web_root }}"
     version: master
     force: true
   become: true
-  become_user: wwwebapp
+  become_user: "{{ nginx_user }}"
 
-- name: Ensure all website files are owned by wwwebapp
+- name: Ensure all website files are owned by web user
   ansible.builtin.file:
-    path: /opt/static-sites
+    path: "{{ web_root }}"
     state: directory
     recurse: true
-    owner: wwwebapp
-    group: wwwebapp
+    owner: "{{ nginx_user }}"
+    group: "{{ nginx_user }}"

@@ -1,0 +1,4 @@
+nginx_user: wwwebapp
+web_root: /opt/static-sites
+nginx_port: 80
+devops_user: root

@@ -1,4 +1,13 @@
 ---
+- name: Add SSH key to DigitalOcean if not exists
+  community.digitalocean.digital_ocean_sshkey:
+    oauth_token: "{{ do_api_token }}"
+    name: "{{ ssh_key_name }}"
+    ssh_pub_key: "{{ ssh_public_key }}"
+    validate_certs: false
+    state: present
+  register: provision_public_key
+
 - name: Provision droplet
   community.digitalocean.digital_ocean_droplet:
     oauth_token: "{{ do_api_token }}"
@@ -8,7 +17,7 @@
     image: ubuntu-22-04-x64
     unique_name: true
     ssh_keys:
-      - "{{ do_ssh_public_key.data.ssh_key.fingerprint }}"
+      - "{{ provision_public_key.data.ssh_key.fingerprint }}"
     monitoring: true
     tags: ["Invizio", "test"]
     state: active
