@@ -2,3 +2,4 @@ nginx_user: wwwebapp
 web_root: /opt/static-sites
 nginx_port: 80
 devops_user: root
+web_content_repo: 'https://github.com/cloudacademy/static-website-example.git'

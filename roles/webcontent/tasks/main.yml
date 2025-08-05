@@ -52,7 +52,7 @@
 
 - name: Clone website content from Git
   ansible.builtin.git:
-    repo: 'https://github.com/cloudacademy/static-website-example.git'
+    repo: "{{ web_content_repo }}"
     dest: "{{ web_root }}"
     version: master
     force: true
