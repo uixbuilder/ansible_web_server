@@ -1,0 +1,37 @@
+---
+- name: Ensure password authentication is disabled in SSH
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?PasswordAuthentication\s+'
+    line: 'PasswordAuthentication no'
+    state: present
+    backup: true
+  notify: Restart sshd
+
+- name: Install fail2ban package
+  ansible.builtin.apt:
+    name: fail2ban
+    state: present
+  become: true
+  register: security_fail2ban_install_result
+  until: security_fail2ban_install_result is succeeded
+  retries: 5
+  delay: 10
+
+- name: Configure fail2ban
+  ansible.builtin.template:
+    src: jail.local.j2
+    dest: /etc/fail2ban/jail.local
+    owner: "{{ devops_user }}"
+    group: root
+    mode: '0644'
+  notify:
+    - Restart fail2ban
+  become: true
+
+- name: Ensure fail2ban service is started and enabled
+  ansible.builtin.service:
+    name: fail2ban
+    state: started
+    enabled: true
+  become: true

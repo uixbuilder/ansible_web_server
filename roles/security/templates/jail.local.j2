@@ -1,0 +1,12 @@
+# Fail2Ban configuration for SSH protection
+
+[DEFAULT]
+bantime = 600
+findtime = 600
+maxretry = 3
+
+[sshd]
+enabled = true
+port = ssh
+logpath = /var/log/auth.log
+backend = auto
