@@ -19,7 +19,7 @@
     ssh_keys:
       - "{{ provision_public_key.data.ssh_key.fingerprint }}"
     monitoring: true
-    tags: ["Invizio", "test"]
+    tags: ["ansible"]
     state: active
   register: provision_droplet
   notify: Add new droplet to inventory
