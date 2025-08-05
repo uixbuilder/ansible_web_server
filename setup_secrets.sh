@@ -24,11 +24,9 @@ readonly VAULT_PASS_FILE=".vault_pass.txt"
 
 readonly VAULT_DO_TOKEN_KEY="do_api_token"
 readonly DO_INVENTORY_TOKEN_KEY="oauth_token"
-readonly VAULT_SSH_PRIVATE_KEY="ssh_private_key"
 readonly VAULT_SSH_PUBLIC_KEY="ssh_public_key"
 
 readonly PLACEHOLDER_TOKEN="Place DigitalOcean token here"
-readonly PLACEHOLDER_SSH_PRIVATE="Place SSH private key here"
 readonly PLACEHOLDER_SSH_PUBLIC="Place SSH public key here"
 
 # --- Debugging ---
@@ -260,10 +258,10 @@ function remove_do_token() {
 function manage_ssh_keys() {
     step "STEP 3: SSH Key Pair"
     local current_key
-    current_key=$(get_yaml_var "$INVENTORY_VAULT_FILE" "$VAULT_SSH_PRIVATE_KEY" || echo "")
-    debug "Current SSH private key in vault (redacted): ${current_key:0:4}..."
+    current_key=$(get_yaml_var "$INVENTORY_VAULT_FILE" "$VAULT_SSH_PUBLIC_KEY" || echo "")
+    debug "Current SSH public key in vault (redacted): ${current_key:0:4}..."
 
-    if [[ -n "$current_key" && "$current_key" != "$PLACEHOLDER_SSH_PRIVATE" ]]; then
+    if [[ -n "$current_key" && "$current_key" != "$PLACEHOLDER_SSH_PUBLIC" ]]; then
         echo "An existing SSH key was found in the vault."
         PS3="Your choice: "
         select opt in "Add/Update key" "Remove key" "Skip"; do
@@ -304,21 +302,17 @@ function prompt_and_update_ssh_keys() {
 }
 
 function add_existing_ssh_key_pair() {
-    local priv_key_path pub_key_path
-    read -e -p "Enter the full path to your PRIVATE SSH key file (e.g., ~/.ssh/id_ed25519): " priv_key_path
+    local pub_key_path
     read -e -p "Enter the full path to your PUBLIC SSH key file (e.g., ~/.ssh/id_ed25519.pub): " pub_key_path
-    debug "User provided private key path: $priv_key_path"
     debug "User provided public key path: $pub_key_path"
-    if [[ ! -f "$priv_key_path" ]] || [[ ! -f "$pub_key_path" ]]; then
-        fail "One or both key files not found. Please check the paths."
+    if [[ ! -f "$pub_key_path" ]]; then
+        fail "Public key file not found. Please check the path."
     fi
-    local priv_key_content pub_key_content
-    priv_key_content=$(cat "$priv_key_path")
+    local pub_key_content
     pub_key_content=$(cat "$pub_key_path")
-    debug "Read private key content starting with: ${priv_key_content:0:4}..."
     debug "Read public key content starting with: ${pub_key_content:0:4}..."
-    encrypt_and_update_ssh_keys "$priv_key_content" "$pub_key_content"
-    success "SSH key pair from files has been securely stored in the vault."
+    encrypt_and_update_ssh_keys "$pub_key_content"
+    success "Public SSH key from file has been securely stored in the vault."
 }
 
 function generate_new_ssh_key_pair() {
@@ -336,32 +330,33 @@ function generate_new_ssh_key_pair() {
         fi
     fi
     ssh-keygen -t ed25519 -f "$key_path" -N "" -q
+
+    echo "ℹ️  Please add the private key to your SSH agent:"
+    echo "To add the key, execute: ssh-add $key_path"
+    echo "Press Enter once you've added the key to continue, or Ctrl+C to abort."
+    read
+
     local priv_key_content pub_key_content
     priv_key_content=$(cat "$key_path")
     pub_key_content=$(cat "${key_path}.pub")
     debug "Generated private key content starting with: ${priv_key_content:0:4}..."
     debug "Generated public key content starting with: ${pub_key_content:0:4}..."
-    encrypt_and_update_ssh_keys "$priv_key_content" "$pub_key_content"
-    success "New SSH key pair generated and securely stored in the vault."
+    encrypt_and_update_ssh_keys "$pub_key_content"
+    success "New SSH key pair generated and public key securely stored in the vault."
     echo "🔑 Private key: $key_path"
     echo "🔑 Public key:  ${key_path}.pub"
 }
 
 function encrypt_and_update_ssh_keys() {
-    local priv_key_content="$1"
-    local pub_key_content="$2"
-    local encrypted_priv_key encrypted_pub_key
-    encrypted_priv_key=$(encrypt_value "$priv_key_content" "$VAULT_SSH_PRIVATE_KEY")
+    local pub_key_content="$1"
+    local encrypted_pub_key
     encrypted_pub_key=$(encrypt_value "$pub_key_content" "$VAULT_SSH_PUBLIC_KEY")
-    debug "Updating vault file with encrypted SSH private key"
-    update_yaml_var "$INVENTORY_VAULT_FILE" "$VAULT_SSH_PRIVATE_KEY" "$encrypted_priv_key"
     debug "Updating vault file with encrypted SSH public key"
     update_yaml_var "$INVENTORY_VAULT_FILE" "$VAULT_SSH_PUBLIC_KEY" "$encrypted_pub_key"
 }
 
 function remove_ssh_keys() {
     debug "Removing SSH keys from vault file"
-    update_yaml_var "$INVENTORY_VAULT_FILE" "$VAULT_SSH_PRIVATE_KEY" "$PLACEHOLDER_SSH_PRIVATE"
     update_yaml_var "$INVENTORY_VAULT_FILE" "$VAULT_SSH_PUBLIC_KEY" "$PLACEHOLDER_SSH_PUBLIC"
     success "SSH keys have been removed and replaced with placeholders."
 }

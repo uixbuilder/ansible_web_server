@@ -1,11 +1,4 @@
 plugin: community.digitalocean.digitalocean
-# Do not edit this variable directly.
-# Instead, use the `setup_secrets.sh` script to set it.
-oauth_token: Place DigitalOcean token here
-
-vars:
-  ansible_python_interpreter: /usr/bin/python3.10
-
 attributes:
   - id
   - name
@@ -18,3 +11,4 @@ groups:
 compose:
   ansible_host: do_networks.v4 | selectattr('type','eq','public') | map(attribute='ip_address') | first
   ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
+oauth_token: Place DigitalOcean token here
