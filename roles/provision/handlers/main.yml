@@ -5,4 +5,6 @@
     ansible_host: "{{ (provision_droplet.data.droplet.networks.v4 | selectattr('type', 'eq', 'public') | map(attribute='ip_address') | first) }}"
     ansible_user: "{{ devops_user }}"
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+    groups:
+      - webservers
   when: provision_droplet.changed
